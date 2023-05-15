@@ -1,0 +1,313 @@
+// chua sat dinh duoc thoi gian de re va thoi gian quay dau
+// tham tri cho cac ham duy chuyen canh lai cho xe di thang
+// dinh chan
+#define ENB 10
+#define IN3 6
+#define IN4 7
+#define ENA 11
+#define IN1 4
+#define IN2 5
+#define trig_truoc 9
+#define echo_truoc 8
+#define trig_trai 13
+#define echo_trai 12
+#define trig_phai 3
+#define echo_phai 2
+// khai bao bien
+
+unsigned long duration_truoc;   
+float distance_truoc;
+unsigned long duration_phai; 
+float distance_phai;
+unsigned long duration_trai; 
+float distance_trai;
+// dinh nghia ha,
+
+void tien(int a, int b);
+void phai(int a, int b);
+void trai(int a, int b);
+void dung();
+void quaydau(int a, int b);
+float khoang_cach_truoc();
+float khoang_cach_phai();
+float khoang_cach_trai();
+
+void setup() {
+  // khai bao dau ra cho l289
+  pinMode(IN1,OUTPUT);
+  pinMode(IN2,OUTPUT);
+  pinMode(IN3,OUTPUT);
+  pinMode(IN4,OUTPUT);
+  pinMode(ENA,OUTPUT);
+  pinMode(ENB,OUTPUT);
+  // khai bao cam bien khoang cach
+  pinMode(trig_truoc,OUTPUT);
+  pinMode(echo_truoc,INPUT);
+  pinMode(trig_trai,OUTPUT);
+  pinMode(echo_trai,INPUT);
+  pinMode(trig_phai,OUTPUT);
+  pinMode(echo_phai,INPUT);
+  Serial.begin(9600);
+}
+
+float khoang_cach_truoc()
+{
+    digitalWrite(trig_truoc,0);
+    delayMicroseconds(2);
+    digitalWrite(trig_truoc,1); 
+    delayMicroseconds(10);
+    digitalWrite(trig_truoc,0);
+     // ham pulseIn leen high se dem thoi gian va ve lai low bo dem thoi gian dung lai 
+    duration_truoc = pulseIn(echo_truoc,HIGH);
+    distance_truoc = float(duration_truoc/2.0/29.412);
+    Serial.print("kc truoc =");
+    Serial.println(distance_truoc);
+    return distance_truoc;
+}
+
+float khoang_cach_phai()
+{
+    digitalWrite(trig_phai,0);
+    delayMicroseconds(2);
+    digitalWrite(trig_phai,1); 
+    delayMicroseconds(10);
+    digitalWrite(trig_phai,0);
+     // ham pulseIn leen high se dem thoi gian va ve lai low bo dem thoi gian dung lai 
+    duration_phai = pulseIn(echo_phai,HIGH);
+    distance_phai = float(duration_phai/2.0/29.412);
+    Serial.print("kc phai =");
+    Serial.println(distance_phai);
+    return distance_phai;
+}
+
+float khoang_cach_trai()
+{
+    digitalWrite(trig_trai,0);
+    delayMicroseconds(2);
+    digitalWrite(trig_trai,1); 
+    delayMicroseconds(10);
+    digitalWrite(trig_trai,0);
+     // ham pulseIn leen high se dem thoi gian va ve lai low bo dem thoi gian dung lai 
+    duration_trai = pulseIn(echo_trai,HIGH);
+    distance_trai = float(duration_trai/2.0/29.412);
+     Serial.print("kc trai =");
+    Serial.println(distance_trai);
+    return distance_trai;
+}
+
+
+
+void loop() 
+{
+
+   float kc_truoc ;
+   float kc_phai = khoang_cach_phai();
+   float kc_trai ;
+  if ( kc_trai < 8.0 && kc_trai != 0 ) // dieu kien khoi dong xe
+  {
+    while(true)
+    {
+         kc_truoc = khoang_cach_truoc();
+
+         //kc_phai = khoang_cach_phai();
+        //kc_trai = khoang_cach_trai();
+      //Serial.println(distance);
+      // thuat toan chon duong ngau nhien ua tien ra phai
+      if(kc_truoc > 12.0 )
+      {
+        tien(65,80); // can tang them toc do de xe toi ua thoi gian lam cuoi cung
+        if(kc_phai < 5.0 || kc_phai > 100.0)
+        {
+          tien(114,80);
+          delay(100);
+        }
+        if(kc_trai < 5.0 || kc_phai > 100.0)
+        {
+          tien(74,120);
+          delay(100);
+        }
+      }
+      else 
+      {
+        lui(75,75);//55 
+        delay(250);
+        dung();
+        delay(400);
+         kc_phai = khoang_cach_phai();
+        kc_trai = khoang_cach_trai();
+
+        if (kc_phai > 20.0 && kc_trai < 20.0)
+       {
+        // quay phai xe mini
+          phai(100,100); 
+          delay(160);
+          // phai(130,0);
+          //delay(238); xe cu re phai
+          // xe mini  re phai delay(170);
+          dung();
+          delay(350);
+          tien(72,80);
+          delay(200);
+          //  khi xe quay dau vua xong thi cam bien van thuc hien tinh toan nen moi chay them lan nua
+          // dung de cảm biến không thực hiện tính toán trong quá trình rẽ
+       }
+        else if(kc_trai > 20.0 && kc_phai < 20.0)
+        {
+         // quay dau
+         trai(100,100);
+         delay(160);
+          //trai(0,130); re trai xe nho
+          //delay(200);
+          dung();
+          delay(350);
+           tien(72,80);
+          delay(200);
+        }
+        else if(kc_phai > 20.0 && kc_trai > 20.0)
+        {
+          phai(100,100); 
+          delay(160);
+          dung();
+          delay(350);
+           tien(72,80);
+          delay(200);
+        }
+       else if (  kc_phai < 20.0 && kc_trai < 20.0)
+      {
+        quaydau(100,100); // // chua sat dinh duoc thoi gian re de re 180 do
+        delay(320);
+        kc_truoc = khoang_cach_truoc();
+        kc_phai = khoang_cach_phai();
+        kc_trai = khoang_cach_trai();
+         138 - 164 giai quyet khi nao gap re thi se re chu ko con di thang den cuoi duong
+        while(kc_phai < 20.0 && kc_trai < 20.0)
+        {
+          tien(75,80);
+           chinh cho xe thang lai
+         if (kc_trai < 4.0)
+        {
+          tien(80,70);
+          delay(500);
+        }
+        else if (kc_phai < 4.0)
+        {
+          tien(70,80);
+          delay(500);
+        }
+          kc_phai = khoang_cach_phai();
+          kc_trai = khoang_cach_trai();
+           gặp lỗ trống đầu tiên rẽ
+          if(kc_phai > 20.0 && kc_trai < 20.0)
+          {
+            phai(130,0); // chua sat dinh duoc thoi gian re de re 90 do
+            delay(170);
+            dung();
+            delay(350);
+          }
+          else if(kc_trai > 20.0 && kc_phai < 20.0)
+          {
+            trai(0,130); // chua sat dinh duoc thoi gian re de re 90 do
+            delay(200);
+            dung();
+            delay(350);
+          }
+          else if(kc_phai > 20.0 && kc_trai > 20.0)
+          {
+            phai(130,0); // chua sat dinh duoc thoi gian re de re 90 do
+            delay(170);
+            dung();
+            delay(350);
+          }
+        }
+      }
+     }
+   }
+  }
+  else dung();
+}
+
+void tien(int a, int b)
+{
+    Serial.println("tien");
+   analogWrite(ENA,a);
+   analogWrite(ENB,b);
+   digitalWrite(IN1,HIGH);
+   digitalWrite(IN3,HIGH);
+   digitalWrite(IN2,LOW);
+   digitalWrite(IN4,LOW);
+}
+
+void lui(int a, int b)
+{
+    Serial.println("lui");
+   analogWrite(ENA,a);
+   analogWrite(ENB,b);
+   digitalWrite(IN1,HIGH);
+   digitalWrite(IN3,HIGH);
+   digitalWrite(IN2,LOW);
+   digitalWrite(IN4,LOW);
+}
+
+
+void quaydau(int a, int b)
+{
+  Serial.println("quaydau");
+   analogWrite(ENA,a);
+   digitalWrite(IN2,HIGH);
+   digitalWrite(IN1,LOW);
+   analogWrite(ENB,b);
+   digitalWrite(IN4,LOW);
+   digitalWrite(IN3,HIGH);
+
+}
+
+void phai(int a, int b)
+{
+  Serial.println("phai");
+
+  // re phai
+   //analogWrite(ENA,a);
+   //digitalWrite(IN2,HIGH);
+   //digitalWrite(IN1,LOW);
+   //analogWrite(ENB,b);
+   //digitalWrite(IN4,LOW);
+   //digitalWrite(IN3,LOW);
+   // quay phai
+   analogWrite(ENA,a);
+   digitalWrite(IN2,HIGH);
+   digitalWrite(IN1,LOW);
+   analogWrite(ENB,b);
+   digitalWrite(IN4,LOW);
+   digitalWrite(IN3,HIGH);
+}
+void trai(int a, int b)
+{
+  Serial.println("trai");
+
+  // re trai
+//   analogWrite(ENA,a);
+//   digitalWrite(IN2,LOW);
+//   digitalWrite(IN1,LOW);
+//   analogWrite(ENB,b);
+//   digitalWrite(IN4,HIGH);
+//   digitalWrite(IN3,LOW);
+// quay trai
+   analogWrite(ENA,a);
+   digitalWrite(IN2,LOW);
+   digitalWrite(IN1,HIGH);
+   analogWrite(ENB,b);
+   digitalWrite(IN4,HIGH);
+   digitalWrite(IN3,LOW);
+}
+
+void dung()
+{
+   Serial.println("dung");
+   analogWrite(ENA,0);
+   analogWrite(ENB,0);
+   digitalWrite(IN2,LOW);
+   digitalWrite(IN1,LOW);
+   digitalWrite(IN4,LOW);
+   digitalWrite(IN3,LOW);
+
+}
